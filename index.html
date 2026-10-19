@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Billetera Virtual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- PANTALLA 1: Login y registro -->
+  <main id="auth-view" class="auth" hidden>
+    <section class="auth-brand">
+      <h1>Billetera Virtual</h1>
+      <p>Tu dinero, a un toque de distancia.</p>
+    </section>
+
+    <section class="auth-card">
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="login">Ingresar</button>
+        <button type="button" class="tab" data-tab="register">Crear cuenta</button>
+      </div>
+
+      <form id="login-form" class="form" novalidate>
+        <label for="login-email">Correo electrónico</label>
+        <input id="login-email" type="email" autocomplete="email" required>
+        <label for="login-pass">Contraseña</label>
+        <input id="login-pass" type="password" autocomplete="current-password" required>
+        <button type="submit" class="btn">Ingresar</button>
+        <button type="button" id="forgot-link" class="link-btn">¿Olvidaste tu contraseña?</button>
+      </form>
+
+      <form id="register-form" class="form" novalidate hidden>
+        <label for="reg-name">Nombre completo</label>
+        <input id="reg-name" type="text" autocomplete="name" required>
+        <label for="reg-email">Correo electrónico</label>
+        <input id="reg-email" type="email" autocomplete="email" required>
+        <label for="reg-pass">Contraseña (mínimo 6 caracteres)</label>
+        <input id="reg-pass" type="password" autocomplete="new-password" required>
+        <label for="reg-question">Pregunta de seguridad</label>
+        <select id="reg-question" required>
+          <option value="" disabled selected>Elegí una pregunta</option>
+          <option>¿Cómo se llamaba tu primera mascota?</option>
+          <option>¿En qué ciudad naciste?</option>
+          <option>¿Cómo se llamaba tu escuela primaria?</option>
+          <option>¿Cuál era tu comida favorita de chico/a?</option>
+        </select>
+        <label for="reg-answer">Respuesta secreta</label>
+        <input id="reg-answer" type="text" autocomplete="off" required>
+        <button type="submit" class="btn">Crear cuenta</button>
+      </form>
+
+      <section id="recover-view" class="recover" hidden>
+        <h2>Recuperar contraseña</h2>
+
+        <form id="recover-email-form" class="form" novalidate>
+          <label for="recover-email">Correo electrónico de tu cuenta</label>
+          <input id="recover-email" type="email" autocomplete="email" required>
+          <button type="submit" class="btn">Continuar</button>
+        </form>
+
+        <form id="recover-answer-form" class="form" novalidate hidden>
+          <p class="recover-label">Tu pregunta de seguridad</p>
+          <p id="recover-question" class="recover-question"></p>
+          <label for="recover-answer">Respuesta secreta</label>
+          <input id="recover-answer" type="text" autocomplete="off" required>
+          <button type="submit" class="btn">Verificar respuesta</button>
+        </form>
+
+        <form id="recover-password-form" class="form" novalidate hidden>
+          <label for="recover-new">Nueva contraseña (mínimo 6 caracteres)</label>
+          <input id="recover-new" type="password" autocomplete="new-password" required>
+          <label for="recover-confirm">Confirmar nueva contraseña</label>
+          <input id="recover-confirm" type="password" autocomplete="new-password" required>
+          <button type="submit" class="btn">Guardar nueva contraseña</button>
+        </form>
+
+        <button type="button" id="recover-back" class="link-btn">← Volver a ingresar</button>
+      </section>
+
+      <p id="auth-msg" class="msg" role="alert"></p>
+    </section>
+  </main>
+
+  <!-- PANTALLA 2: Dashboard -->
+  <div id="app-view" hidden>
+    <header class="topbar">
+      <span class="logo">Billetera Virtual</span>
+      <div class="topbar-user">
+        <span id="user-name"></span>
+        <button type="button" id="logout-btn" class="btn-ghost">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="balance">
+        <p class="balance-label">Saldo actual</p>
+        <p id="balance-amount" class="balance-amount">$ 0,00</p>
+        <form id="topup-form" class="balance-actions" novalidate>
+          <input id="topup-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Monto a cargar" aria-label="Monto a cargar">
+          <button type="submit" class="btn-light">Cargar saldo</button>
+          <button type="button" id="yield-btn" class="btn-light">Simular rendimiento (4%)</button>
+        </form>
+        <p id="balance-msg" class="msg" role="alert"></p>
+      </section>
+
+      <nav class="nav-tabs" aria-label="Secciones">
+        <button type="button" class="nav-tab active" data-panel="resumen">Resumen</button>
+        <button type="button" class="nav-tab" data-panel="metas">Metas</button>
+        <button type="button" class="nav-tab" data-panel="contactos">Contactos</button>
+        <button type="button" class="nav-tab" data-panel="perfil">Mi perfil</button>
+      </nav>
+
+      <!-- Panel: Resumen (gastos, gráfico e historial de la Fase 2) -->
+      <div class="panel" data-panel="resumen">
+      <section class="expense-card">
+        <h2>Registrar un gasto</h2>
+        <form id="expense-form" class="form expense-form" novalidate>
+          <div>
+            <label for="exp-amount">Monto</label>
+            <input id="exp-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required>
+          </div>
+          <div>
+            <label for="exp-desc">Descripción</label>
+            <input id="exp-desc" type="text" maxlength="60" required>
+          </div>
+          <div>
+            <label for="exp-cat">Categoría</label>
+            <select id="exp-cat"></select>
+          </div>
+          <button type="submit" class="btn">Agregar gasto</button>
+        </form>
+        <p id="exp-msg" class="msg" role="alert"></p>
+      </section>
+
+      <section class="analysis">
+        <div class="analysis-head">
+          <h2>Análisis de gastos</h2>
+          <div class="range-tabs">
+            <button type="button" class="range-tab" data-range="daily">Diario</button>
+            <button type="button" class="range-tab active" data-range="weekly">Semanal</button>
+            <button type="button" class="range-tab" data-range="monthly">Mensual</button>
+          </div>
+        </div>
+        <p id="insight" class="insight"></p>
+        <div class="chart-wrap">
+          <canvas id="expense-chart" role="img" aria-label="Gráfico de torta de gastos por categoría"></canvas>
+          <p id="chart-empty" class="empty">No hay gastos para graficar en este período.</p>
+        </div>
+      </section>
+
+      <section class="history">
+        <h2>Historial de movimientos</h2>
+        <ul id="tx-list" class="tx-list"></ul>
+        <p id="tx-empty" class="empty">No hay movimientos en este período. Registrá un gasto para empezar.</p>
+      </section>
+      </div>
+
+      <!-- Panel: Metas de ahorro -->
+      <div class="panel" data-panel="metas" hidden>
+        <section class="card">
+          <h2>Nueva meta</h2>
+          <form id="goal-form" class="form row-form" novalidate>
+            <div>
+              <label for="goal-name">Objetivo</label>
+              <input id="goal-name" type="text" maxlength="40" placeholder="Nueva laptop" required>
+            </div>
+            <div>
+              <label for="goal-target">Monto meta</label>
+              <input id="goal-target" type="number" min="1" step="0.01" inputmode="decimal" required>
+            </div>
+            <button type="submit" class="btn">Crear meta</button>
+          </form>
+          <p id="goal-msg" class="msg" role="alert"></p>
+        </section>
+        <section class="card">
+          <h2>Mis metas</h2>
+          <ul id="goal-list" class="goal-list"></ul>
+          <p id="goal-empty" class="empty">Todavía no tenés metas. Creá la primera para empezar a ahorrar.</p>
+        </section>
+      </div>
+
+      <!-- Panel: Contactos y transferencias -->
+      <div class="panel" data-panel="contactos" hidden>
+        <section class="card">
+          <h2>Contactos favoritos</h2>
+          <form id="contact-form" class="form row-form" novalidate>
+            <div>
+              <label for="contact-name">Nombre</label>
+              <input id="contact-name" type="text" maxlength="40" required>
+            </div>
+            <div>
+              <label for="contact-alias">Alias o CVU</label>
+              <input id="contact-alias" type="text" maxlength="30" required>
+            </div>
+            <button type="submit" class="btn">Guardar contacto</button>
+          </form>
+          <ul id="contact-list" class="contact-list"></ul>
+          <p id="contact-empty" class="empty">Todavía no guardaste contactos.</p>
+          <div id="transfer-panel" class="transfer-panel" hidden>
+            <h3 id="transfer-title"></h3>
+            <form id="transfer-form" class="goal-add" novalidate>
+              <input id="transfer-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Monto a transferir" aria-label="Monto a transferir">
+              <button type="submit" class="btn">Enviar</button>
+              <button type="button" id="transfer-cancel" class="btn-ghost">Cancelar</button>
+            </form>
+          </div>
+          <p id="contact-msg" class="msg" role="alert"></p>
+        </section>
+      </div>
+
+      <!-- Panel: Mi perfil -->
+      <div class="panel" data-panel="perfil" hidden>
+        <section class="profile-card">
+          <div>
+            <h2 id="profile-name"></h2>
+            <p class="profile-label">Alias</p>
+            <p id="profile-alias" class="profile-value"></p>
+            <p class="profile-label">CVU</p>
+            <p id="profile-cvu" class="profile-value"></p>
+          </div>
+          <div class="qr-box">
+            <div id="qr"></div>
+            <p>Mostrá este código para recibir pagos (QR ilustrativo)</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Botones flotantes -->
+    <button type="button" id="chat-fab" class="fab fab-left" aria-label="Abrir asistente financiero" aria-expanded="false">
+      <i class="fa-solid fa-robot" aria-hidden="true"></i>
+    </button>
+    <button type="button" id="settings-fab" class="fab fab-right" aria-label="Abrir ajustes" aria-expanded="false">
+      <i class="fa-solid fa-gear" aria-hidden="true"></i>
+    </button>
+
+    <!-- Panel de ajustes -->
+    <aside id="settings-panel" class="float-panel settings-panel" aria-label="Ajustes" hidden>
+      <header class="panel-head">
+        <h2><i class="fa-solid fa-gear" aria-hidden="true"></i> Ajustes</h2>
+        <button type="button" class="icon-btn" data-close="#settings-panel" aria-label="Cerrar ajustes">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+      <div class="panel-body">
+        <div class="setting-row">
+          <div>
+            <strong>Modo oscuro</strong>
+            <p class="setting-hint">Cambia los colores de toda la aplicación.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="dark-toggle" role="switch">
+            <span class="slider"></span>
+            <span class="sr-only">Activar modo oscuro</span>
+          </label>
+        </div>
+
+        <div class="setting-block">
+          <strong>Tema de color</strong>
+          <div class="swatches" role="radiogroup" aria-label="Tema de color">
+            <button type="button" class="swatch active" role="radio" aria-checked="true" data-accent="blue"><span class="dot dot-blue"></span>Azul Fintech</button>
+            <button type="button" class="swatch" role="radio" aria-checked="false" data-accent="green"><span class="dot dot-green"></span>Verde Ecológico</button>
+            <button type="button" class="swatch" role="radio" aria-checked="false" data-accent="violet"><span class="dot dot-violet"></span>Violeta Neo</button>
+          </div>
+        </div>
+
+        <div class="setting-block">
+          <label for="chart-type"><strong>Estilo del gráfico</strong></label>
+          <select id="chart-type" class="setting-select">
+            <option value="pie">Torta (Pie)</option>
+            <option value="doughnut">Dona (Doughnut)</option>
+            <option value="bar">Barras (Bar)</option>
+          </select>
+        </div>
+
+        <h3 class="setting-title">Privacidad</h3>
+        <div class="setting-row">
+          <div>
+            <strong>Modo incógnito</strong>
+            <p class="setting-hint">Oculta tu saldo con asteriscos (***).</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="hide-toggle" role="switch">
+            <span class="slider"></span>
+            <span class="sr-only">Ocultar saldo</span>
+          </label>
+        </div>
+
+        <h3 class="setting-title">Seguridad y límites</h3>
+        <ul class="safety-list">
+          <li>
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            <div>
+              <strong>Validación de fondos <span class="badge">Activada</span></strong>
+              <p>No podés gastar, aportar a una meta ni transferir más dinero del que tenés en tu saldo.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <div>
+              <strong>Contraseñas protegidas <span class="badge">Activada</span></strong>
+              <p>Se guardan con hash (SHA-256), no en texto plano.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h3 class="setting-title">Seguridad de la cuenta</h3>
+        <form id="pw-form" class="setting-block" novalidate>
+          <strong>Cambiar contraseña</strong>
+          <input id="pw-current" class="field" type="password" placeholder="Contraseña actual" autocomplete="current-password" aria-label="Contraseña actual">
+          <input id="pw-new" class="field" type="password" placeholder="Nueva contraseña" autocomplete="new-password" aria-label="Nueva contraseña">
+          <input id="pw-confirm" class="field" type="password" placeholder="Confirmar nueva contraseña" autocomplete="new-password" aria-label="Confirmar nueva contraseña">
+          <button type="submit" class="btn btn-sm">Cambiar contraseña</button>
+          <p id="pw-msg" class="msg" role="alert"></p>
+        </form>
+
+        <div class="setting-block">
+          <strong>Actividad reciente</strong>
+          <p class="setting-hint">Tus últimos 3 inicios de sesión.</p>
+          <ul id="login-log" class="log-list"></ul>
+        </div>
+
+        <h3 class="setting-title">Mantenimiento</h3>
+        <div class="setting-block">
+          <button type="button" id="reset-btn" class="btn-danger"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Restablecer aplicación</button>
+          <p class="setting-hint">Borra todos los datos de prueba y vuelve a empezar desde cero.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Chatbot de asistencia financiera -->
+    <aside id="chat-panel" class="float-panel chat-panel" aria-label="Asistente financiero" hidden>
+      <header class="panel-head">
+        <h2><i class="fa-solid fa-robot" aria-hidden="true"></i> Asistente financiero</h2>
+        <button type="button" class="icon-btn" data-close="#chat-panel" aria-label="Cerrar asistente">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite"></div>
+      <div class="chat-chips">
+        <button type="button" class="chip" data-q="¿Cuál es mi saldo?">Saldo</button>
+        <button type="button" class="chip" data-q="¿Cómo van mis ahorros?">Ahorro</button>
+        <button type="button" class="chip" data-q="Mis transferencias">Transferencias</button>
+        <button type="button" class="chip" data-q="¿En qué gasto más?">Gastos</button>
+      </div>
+      <form id="chat-form" class="chat-form" autocomplete="off">
+        <input id="chat-input" type="text" placeholder="Escribí tu consulta…" aria-label="Mensaje para el asistente">
+        <button type="submit" class="btn-send" aria-label="Enviar"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+      </form>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
