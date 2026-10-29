@@ -2,13 +2,531 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2d5bff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Billetera">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232d5bff'/%3E%3Crect x='14' y='22' width='36' height='24' rx='4' fill='white'/%3E%3Crect x='34' y='30' width='16' height='8' rx='3' fill='%232d5bff'/%3E%3C/svg%3E">
   <title>Billetera Virtual</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
+  <style>
+/* ---------- Variables de diseño ---------- */
+:root {
+  --ink: #0f1e45;
+  --blue: #2d5bff;
+  --mint: #14c6a5;
+  --bg: #f2f5fb;
+  --card: #ffffff;
+  --muted: #5b6783;
+  --line: #e1e6f2;
+  --danger: #d6334b;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+
+body {
+  font-family: "Manrope", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* ---------- Login / registro ---------- */
+.auth { min-height: 100vh; display: grid; grid-template-columns: 1fr; }
+
+.auth-brand {
+  background: linear-gradient(135deg, var(--ink), var(--blue));
+  color: #fff;
+  padding: 40px 24px;
+  display: flex; flex-direction: column; justify-content: center; gap: 8px;
+}
+.auth-brand h1 { font-size: 2rem; font-weight: 800; }
+.auth-brand p { opacity: .85; }
+
+.auth-card {
+  background: var(--card);
+  padding: 28px 24px 40px;
+  width: 100%; max-width: 440px;
+  margin: 0 auto;
+}
+
+.tabs { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 12px; margin-bottom: 24px; }
+.tab {
+  flex: 1; border: 0; background: transparent; padding: 10px;
+  font: inherit; font-weight: 700; color: var(--muted);
+  border-radius: 9px; cursor: pointer;
+}
+.tab.active { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(15, 30, 69, .12); }
+
+.form { display: flex; flex-direction: column; gap: 6px; }
+.form label { font-size: .875rem; font-weight: 700; margin-top: 10px; }
+.form input, .form select {
+  font: inherit; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: #fff;
+}
+.form input:focus, .form select:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+
+.btn {
+  margin-top: 20px; border: 0; cursor: pointer;
+  font: inherit; font-weight: 800; color: #fff;
+  background: var(--blue); padding: 14px; border-radius: 12px;
+  transition: background .15s;
+}
+.btn:hover { background: var(--blue-dark); }
+
+.msg { min-height: 1.5em; margin-top: 16px; font-size: .9rem; font-weight: 700; }
+.msg.error { color: var(--danger); }
+.msg.ok { color: #0a8f77; }
+
+/* ---------- Dashboard ---------- */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--line);
+}
+.logo { font-weight: 800; }
+.topbar-user { display: flex; align-items: center; gap: 14px; font-weight: 700; }
+.btn-ghost {
+  font: inherit; font-weight: 700; color: var(--blue);
+  background: transparent; border: 1.5px solid var(--line);
+  padding: 8px 14px; border-radius: 10px; cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--blue); }
+
+.dashboard { max-width: 880px; margin: 0 auto; padding: 24px; display: grid; gap: 24px; }
+
+.balance {
+  background: linear-gradient(135deg, var(--ink) 0%, var(--mid) 70%, var(--blue) 100%);
+  color: #fff; border-radius: var(--radius); padding: 32px 28px;
+}
+.balance-label { opacity: .8; font-weight: 500; }
+.balance-amount { font-size: clamp(2.2rem, 8vw, 3.4rem); font-weight: 800; letter-spacing: -.02em; }
+
+.history { background: var(--card); border-radius: var(--radius); padding: 24px; border: 1px solid var(--line); }
+.history h2 { font-size: 1.125rem; margin-bottom: 16px; }
+
+.tx-list { list-style: none; padding: 0; }
+.tx-list li { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.tx-list li:last-child { border-bottom: 0; }
+.tx-date { color: var(--muted); font-size: .85rem; }
+.tx-amount { font-weight: 800; }
+.tx-amount.in { color: #0a8f77; }
+.tx-amount.out { color: var(--danger); }
+
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+
+/* ---------- Escritorio ---------- */
+@media (min-width: 820px) {
+  .auth { grid-template-columns: 1.1fr 1fr; }
+  .auth-brand { padding: 64px; }
+  .auth-brand h1 { font-size: 3rem; }
+  .auth-card { align-self: center; margin: 0 auto; padding: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ---------- Gastos, análisis y gráfico (Fase 2) ---------- */
+.expense-card, .analysis, .card { background: var(--card); border-radius: var(--radius); padding: 24px; border: 1px solid var(--line); }
+.expense-card h2, .analysis h2, .card h2 { font-size: 1.125rem; }
+
+.expense-form { display: grid; grid-template-columns: 1fr; gap: 0 16px; margin-top: 4px; }
+.expense-form > div { display: flex; flex-direction: column; gap: 6px; }
+
+.analysis-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.range-tabs { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 12px; }
+.range-tab, .quick-tab {
+  border: 0; background: transparent; padding: 8px 14px;
+  font: inherit; font-weight: 700; color: var(--muted);
+  border-radius: 9px; cursor: pointer;
+}
+.range-tab.active, .quick-tab.active { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(15, 30, 69, .12); }
+
+.insight { background: var(--tint-soft); border-left: 4px solid var(--blue); padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; }
+.chart-wrap { position: relative; max-width: 380px; margin: 0 auto; }
+
+@media (min-width: 820px) {
+  .expense-form { grid-template-columns: 1fr 2fr 1fr auto; align-items: end; }
+  .expense-form .btn { margin-top: 0; }
+}
+
+/* ---------- Fase 3: navegación, metas, contactos y perfil ---------- */
+.nav-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.nav-tab {
+  flex: 1 0 auto; border: 1.5px solid var(--line); background: var(--card);
+  padding: 10px 16px; font: inherit; font-weight: 700; color: var(--muted);
+  border-radius: 12px; cursor: pointer;
+}
+.nav-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+.panel { display: grid; gap: 24px; }
+
+/* Acciones dentro de la tarjeta de saldo */
+.balance-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.balance-actions input { flex: 1 1 160px; font: inherit; padding: 11px 14px; border: 0; border-radius: 12px; }
+.btn-light {
+  font: inherit; font-weight: 700; color: #fff; cursor: pointer;
+  background: rgba(255, 255, 255, .16); border: 1.5px solid rgba(255, 255, 255, .4);
+  padding: 11px 16px; border-radius: 12px;
+}
+.btn-light:hover { background: rgba(255, 255, 255, .26); }
+.balance .msg { color: #fff; margin-top: 12px; }
+.balance .msg.error { color: #ffd0d8; }
+.balance .msg.ok { color: #b9ffee; }
+
+/* Formularios en fila (metas y contactos) */
+.row-form { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+.row-form > div { display: flex; flex-direction: column; gap: 6px; }
+
+.goal-list, .contact-list { list-style: none; padding: 0; display: grid; gap: 16px; }
+.goal { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; }
+.goal-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.goal-amounts, .goal-pct { color: var(--muted); font-size: .9rem; }
+.bar { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--mint)); border-radius: 99px; transition: width .4s; }
+
+.goal-add { display: flex; flex-wrap: wrap; gap: 10px; }
+.goal-add input { flex: 1 1 160px; font: inherit; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; }
+.goal-add input:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+.goal-add .btn { margin-top: 0; padding: 10px 18px; }
+
+.contact-list { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-top: 16px; }
+.contact {
+  width: 100%; text-align: left; font: inherit; cursor: pointer;
+  background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 14px; display: grid; gap: 2px;
+}
+.contact:hover, .contact.selected { border-color: var(--blue); }
+.contact span { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+.transfer-panel { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.transfer-panel h3 { font-size: 1rem; margin-bottom: 12px; }
+
+/* Mi perfil */
+.profile-card {
+  background: linear-gradient(135deg, var(--ink) 0%, var(--mid) 70%, var(--mint) 140%);
+  color: #fff; border-radius: var(--radius); padding: 28px; display: grid; gap: 24px;
+}
+.profile-label { opacity: .75; font-size: .85rem; margin-top: 14px; }
+.profile-value { font-size: 1.25rem; font-weight: 800; overflow-wrap: anywhere; }
+.qr-box { background: #fff; color: var(--ink); border-radius: var(--radius); padding: 16px; text-align: center; max-width: 220px; }
+.qr-box svg { width: 100%; height: auto; display: block; }
+.qr-box p { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+
+@media (min-width: 820px) {
+  .row-form { grid-template-columns: 1fr 1fr auto; align-items: end; }
+  .row-form .btn { margin-top: 0; }
+  .profile-card { grid-template-columns: 1fr auto; align-items: center; }
+}
+
+/* ---------- Fase 4: modo oscuro, botones flotantes y paneles ---------- */
+:root { --text: #0f1e45; }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1226;
+  --card: #141d38;
+  --text: #e8edff;
+  --muted: #9aa6c7;
+  --line: #27345f;
+}
+[data-theme="dark"] body { color: var(--text); }
+[data-theme="dark"] .tab.active,
+[data-theme="dark"] .range-tab.active, [data-theme="dark"] .quick-tab.active { color: var(--text); }
+[data-theme="dark"] .nav-tab.active { background: var(--blue); border-color: var(--blue); }
+[data-theme="dark"] .insight { background: var(--tint); }
+[data-theme="dark"] input:not([type="checkbox"]),
+[data-theme="dark"] select { background: var(--bg); color: var(--text); border-color: var(--line); }
+
+.contact { color: var(--text); }
+.qr-box p { color: #5b6783; }
+.dashboard { padding-bottom: 96px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Botones flotantes */
+.fab {
+  position: fixed; bottom: 20px; width: 58px; height: 58px; border-radius: 50%;
+  border: 0; color: #fff; font-size: 1.4rem; cursor: pointer; z-index: 40;
+  box-shadow: 0 8px 24px rgba(15, 30, 69, .35); transition: transform .15s;
+}
+.fab:hover { transform: scale(1.07); }
+.fab-left { left: 20px; background: var(--blue); }
+.fab-right { right: 20px; background: var(--ink); border: 2px solid rgba(255, 255, 255, .18); }
+
+/* Paneles flotantes */
+.float-panel {
+  position: fixed; bottom: 92px; width: min(360px, calc(100vw - 32px)); max-height: calc(100vh - 120px);
+  background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(15, 30, 69, .28); z-index: 39;
+  display: flex; flex-direction: column; overflow: hidden; animation: pop .18s ease-out;
+}
+.chat-panel { left: 20px; height: 480px; }
+.settings-panel { right: 20px; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
+.panel-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.panel-head h2 { font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.icon-btn { border: 0; background: transparent; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+.icon-btn:hover { color: var(--text); }
+.panel-body { padding: 16px; display: grid; gap: 18px; overflow-y: auto; }
+
+/* Ajustes */
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.setting-hint, .safety-list p { color: var(--muted); font-size: .85rem; }
+.setting-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.safety-list { list-style: none; padding: 0; display: grid; gap: 14px; }
+.safety-list li { display: flex; gap: 12px; }
+.safety-list i { color: var(--mint); font-size: 1.2rem; margin-top: 3px; }
+.badge { font-size: .7rem; background: rgba(20, 198, 165, .16); color: #0a8f77; padding: 2px 8px; border-radius: 99px; margin-left: 6px; }
+
+.switch { position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0; }
+.switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.slider { position: absolute; inset: 0; background: var(--line); border-radius: 99px; transition: background .2s; }
+.slider::before {
+  content: ""; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+}
+.switch input:checked + .slider { background: var(--blue); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+.switch input:focus-visible + .slider { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* Chat */
+.chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: .92rem; white-space: pre-line; overflow-wrap: anywhere; }
+.chat-msg.bot { background: var(--bg); align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg.user { background: var(--blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.chip {
+  font: inherit; font-size: .82rem; font-weight: 700; color: var(--blue); background: transparent;
+  border: 1.5px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer;
+}
+.chip:hover { border-color: var(--blue); }
+.chat-form { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.chat-form input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; }
+.chat-form input:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+.btn-send { border: 0; background: var(--blue); color: #fff; width: 42px; border-radius: 12px; cursor: pointer; }
+
+@media (max-width: 480px) {
+  .fab-left, .chat-panel { left: 16px; }
+  .fab-right, .settings-panel { right: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-panel { animation: none; }
+}
+
+/* ---------- Fase 5: temas de color ---------- */
+/* --blue es el color principal, --mint el de acento, --ink el fondo oscuro de las tarjetas, --c1…--c5 los colores del gráfico */
+:root {
+  --mid: #1c3a9e;
+  --blue-dark: #1f48e0;
+  --tint: color-mix(in srgb, var(--blue) 18%, transparent);
+  --tint-soft: color-mix(in srgb, var(--blue) 10%, #ffffff);
+  --c1: #2d5bff; --c2: #14c6a5; --c3: #f5a524; --c4: #9b5de5; --c5: #8792ab; --c6: #f0616d;
+}
+:root[data-accent="green"] {
+  --blue: #12935f; --blue-dark: #0e7a4f; --mint: #8bdc4f; --ink: #0b2b20; --mid: #136b4a;
+  --c1: #12935f; --c2: #8bdc4f; --c3: #f2b705; --c4: #2bb3a3; --c5: #7f9a8c; --c6: #e76f51;
+}
+:root[data-accent="violet"] {
+  --blue: #7c4dff; --blue-dark: #6838e6; --mint: #ff5ea8; --ink: #1a1040; --mid: #4b2bb5;
+  --c1: #7c4dff; --c2: #ff5ea8; --c3: #22d3ee; --c4: #b388ff; --c5: #8f8aa8; --c6: #ffb454;
+}
+
+/* ---------- Fase 5: opciones nuevas del panel de ajustes ---------- */
+.settings-panel .panel-body { flex: 1; min-height: 0; }
+.setting-block { display: grid; gap: 8px; }
+.swatches { display: grid; gap: 8px; }
+.swatch {
+  display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer;
+  font: inherit; font-weight: 700; color: var(--text); background: transparent;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px;
+}
+.swatch.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--tint); }
+.dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
+.dot-blue { background: linear-gradient(135deg, #2d5bff, #14c6a5); }
+.dot-green { background: linear-gradient(135deg, #12935f, #8bdc4f); }
+.dot-violet { background: linear-gradient(135deg, #7c4dff, #ff5ea8); }
+.setting-select {
+  font: inherit; padding: 10px 12px; border: 1.5px solid var(--line);
+  border-radius: 12px; background: var(--card); color: var(--text);
+}
+.btn-danger {
+  font: inherit; font-weight: 700; color: var(--danger); background: transparent; cursor: pointer;
+  border: 1.5px solid var(--danger); border-radius: 12px; padding: 11px 14px;
+}
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+/* ---------- Fase 6: recuperación de cuenta, cambio de contraseña y actividad ---------- */
+.link-btn {
+  align-self: center; margin-top: 14px; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-weight: 700; color: var(--blue); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--blue-dark); }
+
+.recover { display: grid; gap: 4px; }
+.recover h2 { font-size: 1.125rem; margin-bottom: 4px; }
+.recover-label { color: var(--muted); font-size: .85rem; font-weight: 700; }
+.recover-question { font-weight: 800; background: var(--bg); border-radius: 12px; padding: 12px 14px; }
+.recover .link-btn { margin-top: 18px; }
+
+/* Panel de ajustes */
+.field {
+  font: inherit; padding: 10px 12px; border: 1.5px solid var(--line);
+  border-radius: 12px; background: var(--card); color: var(--text);
+}
+.field:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+.btn-sm { margin-top: 4px; padding: 11px 14px; }
+.setting-block .msg { margin-top: 4px; min-height: 0; padding: 8px 12px; border-radius: 10px; }
+.setting-block .msg:empty { display: none; }
+.setting-block .msg.ok { background: rgba(20, 198, 165, .14); color: #0a8f77; }
+.setting-block .msg.ok::before { content: "✓ "; }
+.setting-block .msg.error { background: rgba(214, 51, 75, .12); }
+
+.log-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.log-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  font-size: .9rem; padding: 8px 12px; background: var(--bg); border-radius: 10px;
+}
+
+/* ============================================================
+   Adaptación para móviles (Android / iOS)
+   Complementa las reglas de arriba sin cambiar el diseño.
+   ============================================================ */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { max-width: 100%; overflow-x: hidden; }
+body { min-height: 100vh; min-height: 100dvh; -webkit-tap-highlight-color: transparent; }
+.auth { min-height: 100vh; min-height: 100dvh; }
+button, .nav-tab, .range-tab, .quick-tab, .tab, .chip, .swatch, .contact { touch-action: manipulation; }
+
+/* Zonas seguras: notch y barra de gestos del iPhone */
+.topbar { padding-top: max(16px, env(safe-area-inset-top)); padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+.fab { bottom: max(20px, env(safe-area-inset-bottom)); }
+.float-panel { bottom: calc(92px + env(safe-area-inset-bottom)); max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px - env(safe-area-inset-bottom)); }
+.chat-panel { height: min(480px, calc(100vh - 120px)); height: min(480px, calc(100dvh - 120px - env(safe-area-inset-bottom))); }
+.panel-body, .chat-log { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.nav-tabs { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.nav-tabs::-webkit-scrollbar { display: none; }
+.chat-chips { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.chat-chips::-webkit-scrollbar { display: none; }
+.chip { flex: 0 0 auto; white-space: nowrap; }
+
+/* Sin efectos "hover" que queden pegados al tocar */
+@media (hover: none) {
+  .fab:hover { transform: none; }
+}
+
+@media (max-width: 768px) {
+  /* iOS hace zoom si el texto del campo es menor a 16px */
+  input, select, textarea { font-size: 16px; }
+
+  /* Zonas táctiles de al menos 44 px */
+  .btn, .btn-ghost, .btn-light, .btn-danger, .tab, .range-tab, .quick-tab, .nav-tab, .chip, .swatch, .icon-btn, .link-btn { min-height: 44px; }
+  .btn-send { width: 46px; min-height: 44px; }
+  .switch { width: 52px; height: 32px; }
+  .slider::before { width: 26px; height: 26px; }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+
+  .topbar { flex-wrap: wrap; row-gap: 8px; }
+  #user-name { max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar-user { gap: 10px; }
+
+  .dashboard { padding: 16px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); gap: 16px; }
+  .expense-card, .analysis, .card, .history { padding: 18px 16px; }
+  .profile-card { padding: 22px 18px; justify-items: center; text-align: center; }
+  .analysis-head { flex-direction: column; align-items: stretch; }
+  .range-tabs { width: 100%; }
+  .range-tab, .quick-tab { flex: 1; padding-left: 8px; padding-right: 8px; }
+  .tx-amount { white-space: nowrap; }
+  .tx-list li > :first-child, .goal-head { overflow-wrap: anywhere; min-width: 0; }
+}
+
+@media (max-width: 480px) {
+  .balance { padding: 22px 18px; }
+  .balance-actions { flex-direction: column; }
+  .balance-actions input, .balance-actions .btn-light { flex: 1 1 auto; width: 100%; }
+  .goal-add .btn, .goal-add .btn-ghost { flex: 1 1 calc(50% - 5px); }
+  .contact-list { grid-template-columns: 1fr; }
+  .auth-brand { padding: 32px 20px; }
+  .auth-card { padding: 24px 18px calc(40px + env(safe-area-inset-bottom)); }
+}
+
+
+/* Botón para ver / ocultar contraseña */
+.pw-wrap { position: relative; display: block; width: 100%; }
+.pw-wrap input { width: 100%; padding-right: 84px; }
+.pw-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  min-height: 36px; padding: 0 12px; border: 0; border-radius: 9px; cursor: pointer;
+  background: transparent; color: var(--blue); font: inherit; font-weight: 800; font-size: .85rem;
+}
+.pw-toggle:hover { background: var(--tint); }
+
+
+/* Meta cumplida: usar el dinero y recordatorios */
+.goal-done, .reminder { display: grid; gap: 10px; background: var(--tint-soft); border-left: 4px solid var(--mint); padding: 12px 14px; border-radius: 10px; }
+.reminder { border-left-color: var(--c3); border-radius: 12px; padding: 14px 16px; }
+[data-theme="dark"] .goal-done, [data-theme="dark"] .reminder { background: var(--tint); }
+.goal-done-title { font-weight: 800; }
+.goal-reminder, .goal-used { color: var(--muted); font-size: .9rem; }
+.goal-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.goal-actions .btn, .reminder .btn { margin-top: 0; padding: 10px 18px; }
+.reminder .btn { justify-self: start; }
+.goal-flow { display: grid; gap: 12px; }
+.goal-field { display: grid; gap: 6px; }
+.goal-field label { font-size: .875rem; font-weight: 700; }
+.goal-field input, .goal-field select {
+  font: inherit; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--text); min-width: 0; width: 100%;
+}
+.goal-field input:focus, .goal-field select:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+
+
+/* Reportes */
+.report-hint { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+.report-quick { margin-bottom: 14px; }
+.report-quick .quick-tab { flex: 1; }
+.report { display: grid; gap: 14px; }
+.report h2, .report h3 { margin: 0; }
+.report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { background: var(--tint-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+[data-theme="dark"] .stat { background: var(--tint); }
+.stat span { color: var(--muted); font-size: .8rem; font-weight: 700; }
+.stat strong { font-size: 1.05rem; white-space: nowrap; }
+.stat.in strong { color: #0a8f77; }
+.stat.out strong { color: var(--danger); }
+.report-line { margin: 0; color: var(--muted); font-size: .92rem; }
+.report-cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.report-cat { display: grid; gap: 6px; }
+.report-cat-head { display: flex; justify-content: space-between; gap: 10px; font-size: .92rem; }
+.report-actions .btn { margin-top: 0; }
+
+@media print {
+  .topbar, .balance, .nav-tabs, #reminder-box, .fab, .float-panel, .report-controls, .report-actions,
+  .panel:not([data-panel="reportes"]) { display: none !important; }
+  html, body { background: #fff !important; }
+  .dashboard { padding: 0 !important; max-width: none !important; }
+  #report-result { box-shadow: none !important; border: 0 !important; background: #fff !important; }
+  #report-result * { color: #111 !important; }
+  #report-result .stat { background: #f1f3f8 !important; }
+  #report-result .bar-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+/* Celular en horizontal: poca altura */
+@media (max-height: 480px) and (orientation: landscape) {
+  .float-panel { max-height: calc(100dvh - 100px); }
+  .chat-panel { height: calc(100dvh - 100px); }
+}
+</style>
 </head>
 <body>
 
@@ -108,10 +626,13 @@
         <p id="balance-msg" class="msg" role="alert"></p>
       </section>
 
+      <section id="reminder-box" class="reminder" role="status" aria-live="polite" hidden></section>
+
       <nav class="nav-tabs" aria-label="Secciones">
         <button type="button" class="nav-tab active" data-panel="resumen">Resumen</button>
         <button type="button" class="nav-tab" data-panel="metas">Metas</button>
         <button type="button" class="nav-tab" data-panel="contactos">Contactos</button>
+        <button type="button" class="nav-tab" data-panel="reportes">Reportes</button>
         <button type="button" class="nav-tab" data-panel="perfil">Mi perfil</button>
       </nav>
 
@@ -182,6 +703,33 @@
           <ul id="goal-list" class="goal-list"></ul>
           <p id="goal-empty" class="empty">Todavía no tenés metas. Creá la primera para empezar a ahorrar.</p>
         </section>
+      </div>
+
+      <!-- Panel: Reportes -->
+      <div class="panel" data-panel="reportes" hidden>
+        <section class="card report-controls">
+          <h2>Reportes</h2>
+          <p class="report-hint">Elegí el período que querés ver: usá un acceso rápido o escribí las fechas.</p>
+          <div class="range-tabs report-quick" role="group" aria-label="Períodos rápidos">
+            <button type="button" class="quick-tab" data-quick="today">Hoy</button>
+            <button type="button" class="quick-tab" data-quick="week">7 días</button>
+            <button type="button" class="quick-tab" data-quick="month">Este mes</button>
+            <button type="button" class="quick-tab" data-quick="all">Todo</button>
+          </div>
+          <form id="report-form" class="form row-form" novalidate>
+            <div>
+              <label for="report-from">Desde</label>
+              <input id="report-from" type="date" required>
+            </div>
+            <div>
+              <label for="report-to">Hasta</label>
+              <input id="report-to" type="date" required>
+            </div>
+            <button type="submit" class="btn">Ver reporte</button>
+          </form>
+          <p id="report-msg" class="msg" role="alert"></p>
+        </section>
+        <section id="report-result" class="card report" aria-live="polite" hidden></section>
       </div>
 
       <!-- Panel: Contactos y transferencias -->
@@ -356,6 +904,1384 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+/* ============================================================
+   Billetera Virtual - Fase 1
+   "Base de datos" simulada con localStorage:
+   - bv_users:   objeto { "correo": { name, email, passHash, balance, transactions } }
+   - bv_session: correo del usuario que tiene la sesión iniciada
+   ============================================================ */
+
+const USERS_KEY = "bv_users";
+const SESSION_KEY = "bv_session";
+
+const $ = (selector) => document.querySelector(selector);
+
+/* ---------- Utilidades de almacenamiento ---------- */
+function getUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USERS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+/* Guardamos un hash de la contraseña, nunca la contraseña en texto plano.
+   (En un sistema real esto se hace en el servidor, con más protecciones.) */
+function sha256Fallback(text) {
+  const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes = Array.from(new TextEncoder().encode(text));
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  const hi = Math.floor(bitLen / 0x100000000), lo = bitLen >>> 0;
+  [hi, lo].forEach((n) => { for (let i = 3; i >= 0; i--) bytes.push((n >>> (i * 8)) & 0xff); });
+  let h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let i = 0; i < bytes.length; i += 64) {
+    const w = new Array(64);
+    for (let t = 0; t < 16; t++) w[t] = (bytes[i+t*4] << 24) | (bytes[i+t*4+1] << 16) | (bytes[i+t*4+2] << 8) | bytes[i+t*4+3];
+    for (let t = 16; t < 64; t++) {
+      const s0 = rotr(w[t-15], 7) ^ rotr(w[t-15], 18) ^ (w[t-15] >>> 3);
+      const s1 = rotr(w[t-2], 17) ^ rotr(w[t-2], 19) ^ (w[t-2] >>> 10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    let [a,b,c,d,e,f,g,hh] = h;
+    for (let t = 0; t < 64; t++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (hh + S1 + ch + K[t] + w[t]) | 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) | 0;
+      hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    h = [h[0]+a|0, h[1]+b|0, h[2]+c|0, h[3]+d|0, h[4]+e|0, h[5]+f|0, h[6]+g|0, h[7]+hh|0];
+  }
+  return h.map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
+}
+
+async function hashPassword(text) {
+  // Siempre SHA-256: con crypto.subtle si el navegador lo permite, y si no con una versión en JS.
+  // Así el resultado es idéntico en cualquier celular, navegador o dirección (nunca texto plano).
+  if (window.crypto && crypto.subtle) {
+    try {
+      const data = new TextEncoder().encode(text);
+      const buffer = await crypto.subtle.digest("SHA-256", data);
+      return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch { /* si falla, usamos la versión en JS */ }
+  }
+  return sha256Fallback(text);
+}
+
+// Compara un valor guardado con lo que escribió la persona.
+// También acepta cuentas viejas que quedaron guardadas en texto plano.
+async function matchesSecret(stored, plain) {
+  return stored === (await hashPassword(plain)) || stored === plain;
+}
+
+const formatMoney = (amount) =>
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(amount);
+
+/* ---------- Mensajes ---------- */
+function showMessage(text, type = "error", selector = "#auth-msg") {
+  const msg = $(selector);
+  msg.textContent = text;
+  msg.className = `msg ${type}`;
+}
+
+/* ---------- Cambio de pantallas ---------- */
+function showAuth() {
+  selectedContact = null;
+  goalFlow = null;
+  reportRange = null;
+  $("#report-result").hidden = true;
+  $("#transfer-panel").hidden = true;
+  setPanel(null, false);
+  $("#chat-log").innerHTML = "";
+  $("#app-view").hidden = true;
+  $("#auth-view").hidden = false;
+}
+
+function showApp(user) {
+  $("#auth-view").hidden = true;
+  $("#app-view").hidden = false;
+  $("#user-name").textContent = user.name;
+  refreshDashboard(user);
+}
+
+/* ---------- Historial (vacío en la Fase 1) ---------- */
+function renderTransactions(transactions) {
+  const list = $("#tx-list");
+  list.innerHTML = "";
+  $("#tx-empty").hidden = transactions.length > 0;
+
+  transactions.forEach((tx) => {
+    const item = document.createElement("li");
+    const sign = tx.amount >= 0 ? "in" : "out";
+
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = tx.description;
+    const date = document.createElement("div");
+    date.className = "tx-date";
+    date.textContent = `${tx.category} - ${formatDate(tx.timestamp)}`;
+    info.append(title, date);
+
+    const amount = document.createElement("span");
+    amount.className = `tx-amount ${sign}`;
+    amount.textContent = formatMoney(tx.amount);
+
+    item.append(info, amount);
+    list.append(item);
+  });
+}
+
+/* ---------- Gastos: categorías, filtros, gráfico y análisis (Fase 2) ---------- */
+const CATEGORY_COLORS = {
+  Comida: "#2d5bff",
+  Transporte: "#14c6a5",
+  Servicios: "#f5a524",
+  Entretenimiento: "#9b5de5",
+  Otros: "#8792ab",
+};
+
+// Categorías que se registran solas (no se eligen a mano) pero también cuentan como gasto en el gráfico.
+// Así una transferencia aparece en el gráfico sin tener que cargarla de nuevo como gasto.
+const AUTO_CHART_CATEGORIES = ["Transferencias"];
+const CHART_CATEGORIES = [...Object.keys(CATEGORY_COLORS), ...AUTO_CHART_CATEGORIES];
+
+// days = cuántos días hacia atrás desde hoy (0 = solo hoy)
+const RANGES = {
+  daily: { days: 0, label: "de hoy" },
+  weekly: { days: 6, label: "de esta semana" },
+  monthly: { days: 29, label: "de este mes" },
+};
+
+let currentRange = "weekly";
+let chart = null;
+
+const formatDate = (iso) =>
+  new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+
+// Llenamos el selector de categorías desde CATEGORY_COLORS
+Object.keys(CATEGORY_COLORS).forEach((name) => {
+  $("#exp-cat").add(new Option(name, name));
+});
+
+function filterByRange(transactions, range) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - RANGES[range].days);
+  return transactions.filter((tx) => new Date(tx.timestamp) >= start);
+}
+
+// Suma los gastos (montos negativos) por categoría
+function totalsByCategory(transactions) {
+  const totals = {};
+  transactions.filter((tx) => tx.amount < 0 && CHART_CATEGORIES.includes(tx.category)).forEach((tx) => {
+    totals[tx.category] = (totals[tx.category] || 0) + Math.abs(tx.amount);
+  });
+  return totals;
+}
+
+function renderChart(totals) {
+  const labels = Object.keys(totals);
+  const canvas = $("#expense-chart");
+  const hasData = labels.length > 0 && typeof Chart !== "undefined";
+  canvas.hidden = !hasData;
+  $("#chart-empty").hidden = hasData;
+  if (chart) { chart.destroy(); chart = null; }
+  if (!hasData) return;
+
+  chart = new Chart(canvas, {
+    type: currentChartType,
+    data: {
+      labels,
+      datasets: [{
+        data: labels.map((l) => totals[l]),
+        backgroundColor: labels.map(chartColor),
+        borderColor: cssVar("--card"),
+        borderWidth: currentChartType === "bar" ? 0 : 2,
+      }],
+    },
+    options: {
+      plugins: {
+        legend: { display: currentChartType !== "bar", position: "bottom" },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatMoney(ctx.parsed.y ?? ctx.parsed)}` } },
+      },
+      scales: currentChartType === "bar" ? { y: { beginAtZero: true } } : {},
+    },
+  });
+}
+
+function renderInsight(totals) {
+  const entries = Object.entries(totals);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
+  const label = RANGES[currentRange].label;
+
+  if (total === 0) {
+    $("#insight").textContent = `Todavía no registraste gastos ${label}.`;
+    return;
+  }
+  const [category, value] = entries.sort((a, b) => b[1] - a[1])[0];
+  const percent = Math.round((value / total) * 100);
+  $("#insight").textContent =
+    `Aviso: Tu mayor gasto ${label} ha sido en '${category}' con un ${percent}% del total (${formatMoney(total)} en total).`;
+}
+
+// Vuelve a dibujar todo el panel con los datos actuales del usuario
+function refreshDashboard(user = getUsers()[localStorage.getItem(SESSION_KEY)]) {
+  ensureUserData(user);
+  const visible = filterByRange(user.transactions, currentRange);
+  const totals = totalsByCategory(visible);
+  $("#balance-amount").textContent = hideBalance ? "***" : formatMoney(user.balance);
+  renderTransactions(visible);
+  renderChart(totals);
+  renderInsight(totals);
+  renderGoals(user);
+  renderReminders(user);
+  refreshReport(user);
+  renderContacts(user);
+  renderProfile(user);
+  renderLoginLog(user);
+}
+
+document.querySelectorAll(".range-tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    currentRange = btn.dataset.range;
+    document.querySelectorAll(".range-tab").forEach((b) => b.classList.toggle("active", b === btn));
+    refreshDashboard();
+  });
+});
+
+$("#expense-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const amount = parseFloat($("#exp-amount").value);
+  const description = $("#exp-desc").value.trim();
+  const category = $("#exp-cat").value;
+
+  if (!(amount > 0) || !description) {
+    return showMessage("Ingresá un monto mayor a 0 y una descripción.", "error", "#exp-msg");
+  }
+
+  const users = getUsers();
+  const user = users[localStorage.getItem(SESSION_KEY)];
+  if (amount > user.balance) {
+    return showMessage("Saldo insuficiente para registrar este gasto.", "error", "#exp-msg");
+  }
+  user.balance = Math.round((user.balance - amount) * 100) / 100;
+  user.transactions.unshift({ description, category, amount: -amount, timestamp: new Date().toISOString() });
+  saveUsers(users);
+
+  event.target.reset();
+  showMessage("Gasto registrado.", "ok", "#exp-msg");
+  refreshDashboard(user);
+});
+
+/* ---------- Fase 3: metas, rendimientos, contactos y perfil ---------- */
+const YIELD_RATE = 0.04; // interés ficticio del 4%
+let selectedContact = null;
+
+// Crea un elemento con clase y texto (textContent evita inyectar HTML del usuario)
+function el(tag, className = "", text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+// Generador pseudoaleatorio con semilla: mismo dato de entrada, mismo resultado
+function seededRandom(seed) {
+  let h = 1779033703;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 3432918353);
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Completa los datos nuevos en usuarios creados en fases anteriores
+function ensureUserData(user) {
+  user.goals = user.goals || [];
+  user.contacts = user.contacts || [];
+  user.loginLog = user.loginLog || [];
+  if (!user.alias) {
+    const base = user.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "");
+    user.alias = `${base}.bv`;
+  }
+  if (!user.cvu) {
+    const rand = seededRandom(user.email);
+    user.cvu = Array.from({ length: 22 }, () => Math.floor(rand() * 10)).join("");
+  }
+  return user;
+}
+
+// Suma o resta al saldo y deja el registro en el historial
+function addTransaction(user, description, category, amount) {
+  user.balance = Math.round((user.balance + amount) * 100) / 100;
+  user.transactions.unshift({ description, category, amount, timestamp: new Date().toISOString() });
+}
+
+// Aplica un cambio al usuario actual y guarda. Si `change` devuelve un texto, es un error y no se guarda nada.
+function updateUser(change, msgSelector) {
+  const users = getUsers();
+  const user = ensureUserData(users[localStorage.getItem(SESSION_KEY)]);
+  const error = change(user);
+  if (error) {
+    showMessage(error, "error", msgSelector);
+    return false;
+  }
+  saveUsers(users);
+  refreshDashboard(user);
+  return true;
+}
+
+/* --- Metas --- */
+/* --- Usar el dinero de una meta cumplida --- */
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const formatDay = (ymd) => { const [y, m, d] = ymd.split("-"); return `${d}/${m}/${y}`; };
+
+// Estado de la pantalla: qué meta está abierta y en qué paso ("ask" | "now" | "later")
+let goalFlow = null;
+function openGoalFlow(index, step) {
+  goalFlow = index === null ? null : { index, step };
+  refreshDashboard();
+}
+
+const field = (text, control, id) => {
+  control.id = id;
+  const label = el("label", "", text);
+  label.htmlFor = id;
+  const box = el("div", "goal-field");
+  box.append(label, control);
+  return box;
+};
+const select = (options) => {
+  const node = el("select");
+  options.forEach(([value, text]) => node.add(new Option(text, value)));
+  return node;
+};
+const flowButton = (text, className, onClick) => {
+  const b = el("button", className, text);
+  b.type = "button";
+  b.addEventListener("click", onClick);
+  return b;
+};
+
+// El dinero de la meta ya salió del saldo al aportar. Al usarlo, primero vuelve al saldo
+// ("Retiro de la meta") y después se registra la transferencia o la compra. Así no se cuenta dos veces.
+function useGoalMoney(index, plan) {
+  goalFlow = null;
+  let message = "";
+  const done = updateUser((user) => {
+    const goal = user.goals[index];
+    if (!goal || goal.used || goal.saved < goal.target) return "Esta meta todavía no está cumplida.";
+    const amount = goal.saved;
+    let detail;
+    let contact = null;
+    if (plan.action === "transfer") {
+      contact = user.contacts[plan.contact];
+      if (!contact) return "Elegí un contacto para transferir.";
+    }
+    addTransaction(user, `Retiro de la meta: ${goal.name}`, "Metas", amount);
+    goal.saved = 0;
+    if (contact) {
+      addTransaction(user, `Transferencia enviada a ${contact.name} (meta: ${goal.name})`, "Transferencias", -amount);
+      detail = `transferencia a ${contact.name}`;
+      message = `Enviaste ${formatMoney(amount)} a ${contact.name} con el dinero de tu meta.`;
+    } else {
+      addTransaction(user, plan.description, plan.category, -amount);
+      detail = `compra (${plan.category})`;
+      message = `Registraste la compra de ${formatMoney(amount)}. ¡Que la disfrutes!`;
+    }
+    goal.used = { timestamp: new Date().toISOString(), amount, detail };
+    delete goal.reminder;
+  }, "#goal-msg");
+  if (done) showMessage(message, "ok", "#goal-msg");
+}
+
+function buildGoalFlow(user, goal, index) {
+  const money = formatMoney(goal.saved);
+
+  if (goalFlow.step === "ask") {
+    const box = el("div", "goal-flow");
+    box.append(el("p", "goal-done-title", `¿Cuándo querés usar los ${money}?`));
+    const row = el("div", "goal-actions");
+    row.append(
+      flowButton("Ahora", "btn", () => openGoalFlow(index, "now")),
+      flowButton("Más adelante", "btn", () => openGoalFlow(index, "later")),
+      flowButton("Cancelar", "btn-ghost", () => openGoalFlow(null)),
+    );
+    box.append(row);
+    return box;
+  }
+
+  const form = el("form", "goal-flow");
+  form.noValidate = true;
+
+  if (goalFlow.step === "now") {
+    const action = select([["transfer", "Transferirlo a un contacto"], ["spend", "Registrar la compra"]]);
+    const contact = select(user.contacts.map((c, i) => [String(i), `${c.name} (${c.alias})`]));
+    const category = select(Object.keys(CATEGORY_COLORS).map((n) => [n, n]));
+    const desc = el("input");
+    desc.type = "text";
+    desc.maxLength = 60;
+    desc.value = `Compra: ${goal.name}`;
+
+    const contactBox = field("¿A quién se lo enviás?", contact, `gf-contact-${index}`);
+    if (!user.contacts.length) {
+      contactBox.append(el("p", "goal-reminder", "Todavía no tenés contactos. Guardá uno en la sección Contactos y volvé."));
+    }
+    const catBox = field("Categoría de la compra", category, `gf-cat-${index}`);
+    const descBox = field("Descripción", desc, `gf-desc-${index}`);
+    const sync = () => {
+      const transfer = action.value === "transfer";
+      contactBox.hidden = !transfer;
+      catBox.hidden = transfer;
+      descBox.hidden = transfer;
+    };
+    action.addEventListener("change", sync);
+    sync();
+
+    const row = el("div", "goal-actions");
+    const submit = el("button", "btn", `Confirmar y usar ${money}`);
+    submit.type = "submit";
+    row.append(submit, flowButton("Volver", "btn-ghost", () => openGoalFlow(index, "ask")));
+
+    form.append(field("¿Qué querés hacer con el dinero?", action, `gf-action-${index}`), contactBox, catBox, descBox, row);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (action.value === "transfer") {
+        if (!user.contacts.length) return showMessage("Primero guardá un contacto en la sección Contactos.", "error", "#goal-msg");
+        useGoalMoney(index, { action: "transfer", contact: Number(contact.value) });
+      } else {
+        const description = desc.value.trim();
+        if (!description) return showMessage("Escribí una descripción para la compra.", "error", "#goal-msg");
+        useGoalMoney(index, { action: "spend", category: category.value, description });
+      }
+    });
+    return form;
+  }
+
+  // step === "later": programar un recordatorio
+  const date = el("input");
+  date.type = "date";
+  date.min = todayStr();
+  date.value = goal.reminder ? goal.reminder.date : "";
+  const action = select([["transfer", "Transferirlo a un contacto"], ["spend", "Usarlo en la compra"]]);
+  if (goal.reminder) action.value = goal.reminder.action;
+
+  const row = el("div", "goal-actions");
+  const submit = el("button", "btn", "Guardar recordatorio");
+  submit.type = "submit";
+  row.append(submit, flowButton("Volver", "btn-ghost", () => openGoalFlow(index, "ask")));
+
+  form.append(
+    el("p", "goal-reminder", "El dinero queda guardado en la meta hasta ese día."),
+    field("¿Qué día querés que te lo recordemos?", date, `gf-date-${index}`),
+    field("¿Qué vas a hacer?", action, `gf-later-${index}`),
+    row,
+  );
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!date.value || date.value < todayStr()) {
+      return showMessage("Elegí una fecha de hoy en adelante.", "error", "#goal-msg");
+    }
+    const chosen = date.value;
+    goalFlow = null;
+    updateUser((u) => { u.goals[index].reminder = { date: chosen, action: action.value }; }, "#goal-msg");
+    showMessage(`Listo: te vamos a recordar el ${formatDay(chosen)}.`, "ok", "#goal-msg");
+  });
+  return form;
+}
+
+function buildGoalDone(user, goal, index) {
+  const box = el("div", "goal-done");
+  box.append(el("p", "goal-done-title", "¡Meta cumplida! Ya podés usar este dinero."));
+
+  if (goalFlow && goalFlow.index === index) {
+    box.append(buildGoalFlow(user, goal, index));
+    return box;
+  }
+  if (goal.reminder) {
+    const what = goal.reminder.action === "transfer" ? "transferirlo" : "usarlo en tu compra";
+    const due = goal.reminder.date <= todayStr();
+    box.append(el("p", "goal-reminder", due
+      ? `Hoy es el día que elegiste para ${what}.`
+      : `Recordatorio: el ${formatDay(goal.reminder.date)} vas a ${what}.`));
+  }
+  const actions = el("div", "goal-actions");
+  actions.append(flowButton("Usar el dinero", "btn", () => openGoalFlow(index, "ask")));
+  if (goal.reminder) {
+    actions.append(flowButton("Quitar recordatorio", "btn-ghost", () => {
+      updateUser((u) => { delete u.goals[index].reminder; }, "#goal-msg");
+    }));
+  }
+  box.append(actions);
+  return box;
+}
+
+// Aviso en la pantalla principal cuando llega el día de un recordatorio
+function renderReminders(user) {
+  const box = $("#reminder-box");
+  box.innerHTML = "";
+  const today = todayStr();
+  const due = user.goals
+    .map((goal, index) => ({ goal, index }))
+    .filter(({ goal }) => !goal.used && goal.reminder && goal.reminder.date <= today && goal.saved >= goal.target);
+  box.hidden = due.length === 0;
+  due.forEach(({ goal, index }) => {
+    const what = goal.reminder.action === "transfer" ? "transferir" : "usar";
+    box.append(
+      el("p", "goal-done-title", `Recordatorio: hoy querías ${what} los ${formatMoney(goal.saved)} de tu meta «${goal.name}».`),
+      flowButton("Usar ahora", "btn", () => {
+        goalFlow = { index, step: "now" };
+        document.querySelector('.nav-tab[data-panel="metas"]').click();
+        refreshDashboard();
+      }),
+    );
+  });
+}
+
+function renderGoals(user) {
+  const list = $("#goal-list");
+  list.innerHTML = "";
+  $("#goal-empty").hidden = user.goals.length > 0;
+
+  user.goals.forEach((goal, index) => {
+    const used = Boolean(goal.used);
+    const complete = used || goal.saved >= goal.target;
+    const percent = complete ? 100 : Math.min(100, Math.round((goal.saved / goal.target) * 100));
+    const item = el("li", "goal");
+
+    const head = el("div", "goal-head");
+    head.append(
+      el("strong", "", goal.name),
+      el("span", "goal-amounts", used ? "Meta cumplida" : `${formatMoney(goal.saved)} de ${formatMoney(goal.target)}`),
+    );
+
+    const bar = el("div", "bar");
+    bar.setAttribute("role", "progressbar");
+    bar.setAttribute("aria-valuemin", "0");
+    bar.setAttribute("aria-valuemax", "100");
+    bar.setAttribute("aria-valuenow", percent);
+    const fill = el("div", "bar-fill");
+    fill.style.width = `${percent}%`;
+    bar.append(fill);
+
+    item.append(head, bar, el("p", "goal-pct", `${percent}% completado`));
+
+    if (used) {
+      item.append(el("p", "goal-used", `Usaste ${formatMoney(goal.used.amount)} el ${formatDate(goal.used.timestamp)}: ${goal.used.detail}.`));
+    } else if (complete) {
+      item.append(buildGoalDone(user, goal, index));
+    } else {
+      const form = el("form", "goal-add");
+      form.dataset.index = index;
+      const input = el("input");
+      input.type = "number";
+      input.min = "0.01";
+      input.step = "0.01";
+      input.placeholder = "Monto a aportar";
+      input.setAttribute("aria-label", `Monto a aportar a ${goal.name}`);
+      const button = el("button", "btn-ghost", "Aportar");
+      button.type = "submit";
+      form.append(input, button);
+      item.append(form);
+    }
+    list.append(item);
+  });
+}
+
+$("#goal-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = $("#goal-name").value.trim();
+  const target = parseFloat($("#goal-target").value);
+  if (!name || !(target > 0)) {
+    return showMessage("Ingresá un nombre y un monto meta mayor a 0.", "error", "#goal-msg");
+  }
+  updateUser((user) => { user.goals.push({ name, target, saved: 0 }); }, "#goal-msg");
+  event.target.reset();
+  showMessage("Meta creada.", "ok", "#goal-msg");
+});
+
+// Un solo "oyente" para todos los formularios de aporte (delegación de eventos)
+$("#goal-list").addEventListener("submit", (event) => {
+  if (!event.target.classList.contains("goal-add")) return; // los formularios de "usar el dinero" se manejan aparte
+  event.preventDefault();
+  const form = event.target;
+  const index = Number(form.dataset.index);
+  const amount = parseFloat(form.querySelector("input").value);
+  if (!(amount > 0)) return showMessage("Ingresá un monto mayor a 0.", "error", "#goal-msg");
+
+  let reached = false;
+  const done = updateUser((user) => {
+    if (amount > user.balance) return "Saldo insuficiente para este aporte.";
+    const goal = user.goals[index];
+    goal.saved = Math.round((goal.saved + amount) * 100) / 100;
+    addTransaction(user, `Aporte a la meta: ${goal.name}`, "Metas", -amount);
+    reached = goal.saved >= goal.target;
+  }, "#goal-msg");
+  if (done) showMessage(reached ? "¡Llegaste a tu meta! Ya podés usar ese dinero." : "Aporte realizado.", "ok", "#goal-msg");
+});
+
+/* --- Cargar saldo y simular rendimiento --- */
+$("#topup-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const amount = parseFloat($("#topup-amount").value);
+  if (!(amount > 0)) return showMessage("Ingresá un monto mayor a 0.", "error", "#balance-msg");
+  updateUser((user) => { addTransaction(user, "Carga de saldo", "Ingresos", amount); }, "#balance-msg");
+  event.target.reset();
+  showMessage("Saldo cargado.", "ok", "#balance-msg");
+});
+
+$("#yield-btn").addEventListener("click", () => {
+  let gain = 0;
+  const done = updateUser((user) => {
+    gain = Math.round(user.balance * YIELD_RATE * 100) / 100;
+    if (!(gain > 0)) return "No tenés saldo libre para generar rendimientos.";
+    addTransaction(user, `Rendimientos (${YIELD_RATE * 100}%)`, "Rendimientos", gain);
+  }, "#balance-msg");
+  if (done) showMessage(`Pasó el tiempo: ganaste ${formatMoney(gain)} de rendimiento.`, "ok", "#balance-msg");
+});
+
+/* --- Contactos y transferencias --- */
+function renderContacts(user) {
+  const list = $("#contact-list");
+  list.innerHTML = "";
+  $("#contact-empty").hidden = user.contacts.length > 0;
+
+  user.contacts.forEach((contact, index) => {
+    const item = el("li");
+    const button = el("button", index === selectedContact ? "contact selected" : "contact");
+    button.type = "button";
+    button.append(el("strong", "", contact.name), el("span", "", contact.alias));
+    button.addEventListener("click", () => {
+      selectedContact = index;
+      $("#transfer-title").textContent = `Transferir a ${contact.name}`;
+      $("#transfer-panel").hidden = false;
+      $("#transfer-amount").focus();
+      refreshDashboard();
+    });
+    item.append(button);
+    list.append(item);
+  });
+}
+
+$("#contact-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = $("#contact-name").value.trim();
+  const alias = $("#contact-alias").value.trim();
+  if (!name || !alias) return showMessage("Completá el nombre y el alias o CVU.", "error", "#contact-msg");
+  updateUser((user) => { user.contacts.push({ name, alias }); }, "#contact-msg");
+  event.target.reset();
+  showMessage("Contacto guardado.", "ok", "#contact-msg");
+});
+
+$("#transfer-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const amount = parseFloat($("#transfer-amount").value);
+  if (!(amount > 0)) return showMessage("Ingresá un monto mayor a 0.", "error", "#contact-msg");
+
+  let name = "";
+  const done = updateUser((user) => {
+    const contact = user.contacts[selectedContact];
+    if (!contact) return "Elegí un contacto primero.";
+    if (amount > user.balance) return "Saldo insuficiente para esta transferencia.";
+    name = contact.name;
+    addTransaction(user, `Transferencia enviada a ${contact.name}`, "Transferencias", -amount);
+  }, "#contact-msg");
+  if (done) {
+    event.target.reset();
+    showMessage(`Enviaste ${formatMoney(amount)} a ${name}.`, "ok", "#contact-msg");
+  }
+});
+
+$("#transfer-cancel").addEventListener("click", () => {
+  selectedContact = null;
+  $("#transfer-panel").hidden = true;
+  refreshDashboard();
+});
+
+/* --- Mi perfil y QR ilustrativo --- */
+function buildFakeQR(seed) {
+  const n = 25, cell = 6, rand = seededRandom(seed);
+  const inFinder = (x, y) => (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+  let shapes = "";
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      if (!inFinder(x, y) && rand() > 0.52) {
+        shapes += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`;
+      }
+    }
+  }
+  // Los tres cuadrados de esquina que caracterizan a un QR
+  [[0, 0], [n - 7, 0], [0, n - 7]].forEach(([x, y]) => {
+    shapes += `<rect x="${(x + 0.5) * cell}" y="${(y + 0.5) * cell}" width="${6 * cell}" height="${6 * cell}" fill="none" stroke="currentColor" stroke-width="${cell}"/>`;
+    shapes += `<rect x="${(x + 2) * cell}" y="${(y + 2) * cell}" width="${3 * cell}" height="${3 * cell}"/>`;
+  });
+  return `<svg viewBox="0 0 ${n * cell} ${n * cell}" fill="currentColor" role="img" aria-label="Código QR ilustrativo">${shapes}</svg>`;
+}
+
+function renderProfile(user) {
+  $("#profile-name").textContent = user.name;
+  $("#profile-alias").textContent = user.alias;
+  $("#profile-cvu").textContent = user.cvu;
+  $("#qr").innerHTML = buildFakeQR(user.cvu);
+}
+
+/* --- Navegación entre secciones --- */
+document.querySelectorAll(".nav-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".nav-tab").forEach((t) => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.dataset.panel !== tab.dataset.panel; });
+    if (chart) chart.resize();
+  });
+});
+
+/* ---------- Fase 4: ajustes, modo oscuro y asistente financiero ---------- */
+const THEME_KEY = "bv_theme";
+const PANELS = [
+  { panel: "#chat-panel", button: "#chat-fab" },
+  { panel: "#settings-panel", button: "#settings-fab" },
+];
+
+// Abre el panel indicado y cierra el otro. setPanel(null, false) cierra todos.
+function setPanel(target, open) {
+  PANELS.forEach(({ panel, button }) => {
+    const show = panel === target && open;
+    $(panel).hidden = !show;
+    $(button).setAttribute("aria-expanded", String(show));
+  });
+}
+
+PANELS.forEach(({ panel, button }) => {
+  $(button).addEventListener("click", () => {
+    const opening = $(panel).hidden;
+    setPanel(panel, opening);
+    if (opening && panel === "#chat-panel") openChat();
+  });
+});
+
+document.querySelectorAll("[data-close]").forEach((btn) => {
+  btn.addEventListener("click", () => setPanel(btn.dataset.close, false));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") setPanel(null, false);
+});
+
+/* --- Modo oscuro (se recuerda en localStorage) --- */
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  $("#dark-toggle").checked = theme === "dark";
+  if (typeof Chart !== "undefined") {
+    Chart.defaults.color = theme === "dark" ? "#9aa6c7" : "#666666";
+    Chart.defaults.borderColor = theme === "dark" ? "#27345f" : "rgba(0, 0, 0, 0.1)";
+  }
+  if (!$("#app-view").hidden) refreshDashboard(); // redibuja el gráfico con los colores nuevos
+}
+
+$("#dark-toggle").addEventListener("change", (event) => {
+  const theme = event.target.checked ? "dark" : "light";
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme(theme);
+});
+
+applyTheme(
+  localStorage.getItem(THEME_KEY) || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+);
+
+/* --- Chatbot: reglas simples que leen los datos del usuario --- */
+const BOT_INTENTS = [
+  [/\b(hola|buenas|buen dia|buenos dias)\b/, (u) =>
+    `¡Hola, ${u.name.split(" ")[0]}! ¿Qué querés revisar: tu saldo, tus ahorros, tus gastos o tus transferencias?`],
+
+  [/transfer|envi|contacto/, (u) => {
+    const sent = u.transactions.filter((t) => t.category === "Transferencias");
+    if (!sent.length) {
+      return u.contacts.length
+        ? `Tenés ${u.contacts.length} contacto(s) guardado(s), pero todavía no hiciste transferencias. Elegí uno en la sección Contactos.`
+        : "Todavía no hiciste transferencias. Guardá un contacto en la sección Contactos para empezar.";
+    }
+    const total = sent.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    return `Hiciste ${sent.length} transferencia(s) por ${formatMoney(total)} en total. La última: ${sent[0].description} (${formatMoney(Math.abs(sent[0].amount))}).`;
+  }],
+
+  [/reporte|informe/, () => "En la sección «Reportes» elegís las fechas que querés (desde y hasta) o un acceso rápido, ves el detalle de ingresos y gastos y podés descargarlo en CSV o imprimirlo."],
+  [/saldo|cuanto tengo|dinero disponible|plata/, (u) => {
+    if (hideBalance) return "Tenés activado el modo incógnito, así que no te muestro el saldo. Podés desactivarlo en Ajustes.";
+    const inGoals = u.goals.reduce((sum, g) => sum + g.saved, 0);
+    let text = `Tu saldo disponible es ${formatMoney(u.balance)}.`;
+    if (inGoals > 0) text += ` Además tenés ${formatMoney(inGoals)} apartados en tus metas.`;
+    if (u.balance <= 0) text += " Podés sumar dinero con el botón «Cargar saldo».";
+    return text;
+  }],
+
+  [/ahorr|meta/, (u) => {
+    if (!u.goals.length) return "Todavía no tenés metas de ahorro. Creá una en la sección Metas y andá aportando desde tu saldo.";
+    const lines = u.goals.map((g) => {
+      if (g.used) return `• ${g.name}: cumplida y ya usada (${g.used.detail})`;
+      const percent = Math.min(100, Math.round((g.saved / g.target) * 100));
+      const note = g.reminder ? ` · recordatorio el ${formatDay(g.reminder.date)}` : (g.saved >= g.target ? " · ¡cumplida, ya podés usarla!" : "");
+      return `• ${g.name}: ${percent}% (${formatMoney(g.saved)} de ${formatMoney(g.target)})${note}`;
+    });
+    return `Así van tus metas:\n${lines.join("\n")}`;
+  }],
+
+  [/gast|categoria|se me va/, (u) => {
+    const totals = totalsByCategory(filterByRange(u.transactions, "weekly"));
+    const entries = Object.entries(totals);
+    const total = entries.reduce((sum, [, value]) => sum + value, 0);
+    if (!total) return "Esta semana todavía no registraste gastos.";
+    const [category, value] = entries.sort((a, b) => b[1] - a[1])[0];
+    return `Esta semana gastaste ${formatMoney(total)}. Lo que más pesa es «${category}», con el ${Math.round((value / total) * 100)}%.`;
+  }],
+
+  [/rendimiento|interes|invert/, (u) => {
+    const gains = u.transactions.filter((t) => t.category === "Rendimientos");
+    const total = gains.reduce((sum, t) => sum + t.amount, 0);
+    return `El rendimiento ficticio es del ${YIELD_RATE * 100}% sobre tu saldo libre. ` +
+      (gains.length ? `Ya acumulaste ${formatMoney(total)}.` : "Probalo con el botón «Simular rendimiento».");
+  }],
+
+  [/ayuda|que podes|que sabes|opciones/, () =>
+    "Puedo contarte sobre:\n• Tu saldo\n• Tus metas de ahorro\n• Tus transferencias\n• En qué gastás más\n• Los rendimientos"],
+];
+
+function botReply(text) {
+  const user = ensureUserData(getUsers()[localStorage.getItem(SESSION_KEY)]);
+  const clean = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const match = BOT_INTENTS.find(([pattern]) => pattern.test(clean));
+  return match
+    ? match[1](user)
+    : "No estoy seguro de haber entendido. Probá preguntarme por tu saldo, ahorros, transferencias o gastos.";
+}
+
+function addChatMessage(text, who) {
+  const log = $("#chat-log");
+  log.append(el("div", `chat-msg ${who}`, text));
+  log.scrollTop = log.scrollHeight;
+}
+
+function sendChat(text) {
+  addChatMessage(text, "user");
+  setTimeout(() => addChatMessage(botReply(text), "bot"), 400); // pequeña pausa para que se sienta natural
+}
+
+function openChat() {
+  if (!$("#chat-log").children.length) {
+    const user = ensureUserData(getUsers()[localStorage.getItem(SESSION_KEY)]);
+    addChatMessage(`¡Hola, ${user.name.split(" ")[0]}! Soy tu asistente financiero. Preguntame por tu saldo, tus ahorros, tus gastos o tus transferencias.`, "bot");
+  }
+  $("#chat-input").focus();
+}
+
+$("#chat-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = $("#chat-input").value.trim();
+  if (!text) return;
+  event.target.reset();
+  sendChat(text);
+});
+
+document.querySelectorAll(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => sendChat(chip.dataset.q));
+});
+
+/* ---------- Fase 5: temas de color, estilo de gráfico, privacidad y reinicio ---------- */
+const ACCENT_KEY = "bv_accent";
+const CHART_KEY = "bv_chart";
+const HIDE_KEY = "bv_hide";
+const ACCENTS = ["blue", "green", "violet"];
+const CHART_TYPES = ["pie", "doughnut", "bar"];
+
+const readPref = (key, valid, fallback) => {
+  const value = localStorage.getItem(key);
+  return valid.includes(value) ? value : fallback;
+};
+const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+// El color de cada categoría sale de las variables --c1…--c5 del tema activo
+const chartColor = (category) => cssVar(`--c${CHART_CATEGORIES.indexOf(category) + 1}`);
+
+let currentChartType = readPref(CHART_KEY, CHART_TYPES, "pie");
+let hideBalance = localStorage.getItem(HIDE_KEY) === "1";
+
+/* --- Tema de color --- */
+function applyAccent(accent) {
+  document.documentElement.dataset.accent = accent; // el CSS hace el resto con [data-accent]
+  document.querySelectorAll(".swatch").forEach((swatch) => {
+    const active = swatch.dataset.accent === accent;
+    swatch.classList.toggle("active", active);
+    swatch.setAttribute("aria-checked", String(active));
+  });
+  if (!$("#app-view").hidden) refreshDashboard(); // el gráfico toma los colores nuevos
+}
+
+document.querySelectorAll(".swatch").forEach((swatch) => {
+  swatch.addEventListener("click", () => {
+    localStorage.setItem(ACCENT_KEY, swatch.dataset.accent);
+    applyAccent(swatch.dataset.accent);
+  });
+});
+applyAccent(readPref(ACCENT_KEY, ACCENTS, "blue"));
+
+/* --- Estilo del gráfico (renderChart destruye y vuelve a crear el gráfico) --- */
+$("#chart-type").value = currentChartType;
+$("#chart-type").addEventListener("change", (event) => {
+  currentChartType = event.target.value;
+  localStorage.setItem(CHART_KEY, currentChartType);
+  refreshDashboard();
+});
+
+/* --- Modo incógnito --- */
+$("#hide-toggle").checked = hideBalance;
+$("#hide-toggle").addEventListener("change", (event) => {
+  hideBalance = event.target.checked;
+  localStorage.setItem(HIDE_KEY, hideBalance ? "1" : "0");
+  refreshDashboard();
+});
+
+/* --- Restablecer aplicación: borra solo las claves de esta app (prefijo "bv_") --- */
+$("#reset-btn").addEventListener("click", () => {
+  const ok = confirm("Esto borra TODAS las cuentas, movimientos, metas y contactos de prueba y deja la aplicación en cero. ¿Querés continuar?");
+  if (!ok) return;
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("bv_"))
+    .forEach((key) => localStorage.removeItem(key));
+  location.reload();
+});
+
+/* ---------- Fase 6: seguridad de la cuenta ---------- */
+const MAX_RECOVER_ATTEMPTS = 3;
+let recoverEmail = null;
+let recoverAttempts = 0;
+
+// Compara respuestas sin importar mayúsculas, tildes ni espacios sobrantes
+function normalizeAnswer(text) {
+  return text.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/* --- Recuperar contraseña (3 pasos: correo → pregunta → nueva contraseña) --- */
+function showRecoverStep(step) {
+  ["email", "answer", "password"].forEach((name) => {
+    $(`#recover-${name}-form`).hidden = name !== step;
+  });
+}
+
+function openRecover() {
+  recoverEmail = null;
+  recoverAttempts = 0;
+  document.querySelectorAll("#recover-view form").forEach((form) => form.reset());
+  $(".tabs").hidden = true;
+  $("#login-form").hidden = true;
+  $("#register-form").hidden = true;
+  $("#recover-view").hidden = false;
+  showRecoverStep("email");
+  showMessage("");
+  $("#recover-email").focus();
+}
+
+function closeRecover(message, type = "ok") {
+  recoverEmail = null;
+  recoverAttempts = 0;
+  $("#recover-view").hidden = true;
+  $(".tabs").hidden = false;
+  document.querySelector('[data-tab="login"]').click(); // vuelve al login y limpia el mensaje
+  if (message) showMessage(message, type);
+}
+
+$("#forgot-link").addEventListener("click", openRecover);
+$("#recover-back").addEventListener("click", () => closeRecover());
+
+// Paso 1: buscar la cuenta por correo y mostrar su pregunta
+$("#recover-email-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const email = $("#recover-email").value.trim().toLowerCase();
+  const user = getUsers()[email];
+  if (!user) return showMessage("No encontramos una cuenta con ese correo.");
+  if (!user.secQuestion) {
+    return showMessage("Esta cuenta se creó antes de la recuperación y no tiene pregunta de seguridad.");
+  }
+  recoverEmail = email;
+  $("#recover-question").textContent = user.secQuestion;
+  showRecoverStep("answer");
+  showMessage("");
+  $("#recover-answer").focus();
+});
+
+// Paso 2: verificar la respuesta (máximo 3 intentos)
+$("#recover-answer-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!recoverEmail) return;
+  const user = getUsers()[recoverEmail];
+  const given = await hashPassword(normalizeAnswer($("#recover-answer").value));
+
+  if (!(await matchesSecret(user.secAnswerHash, normalizeAnswer($("#recover-answer").value)))) {
+    recoverAttempts++;
+    if (recoverAttempts >= MAX_RECOVER_ATTEMPTS) {
+      return closeRecover("Demasiados intentos fallidos. Volvé a empezar la recuperación.", "error");
+    }
+    return showMessage(`Respuesta incorrecta. Te quedan ${MAX_RECOVER_ATTEMPTS - recoverAttempts} intento(s).`);
+  }
+  event.target.reset();
+  showRecoverStep("password");
+  showMessage("Respuesta correcta. Elegí tu nueva contraseña.", "ok");
+  $("#recover-new").focus();
+});
+
+// Paso 3: guardar la nueva contraseña
+$("#recover-password-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!recoverEmail) return;
+  const next = $("#recover-new").value;
+  if (next.length < 6) return showMessage("La contraseña debe tener al menos 6 caracteres.");
+  if (next !== $("#recover-confirm").value) return showMessage("Las contraseñas no coinciden.");
+
+  const users = getUsers();
+  users[recoverEmail].passHash = await hashPassword(next);
+  saveUsers(users);
+  closeRecover("Contraseña actualizada. Ya podés ingresar con la nueva.");
+});
+
+/* --- Cambiar contraseña desde Ajustes --- */
+$("#pw-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const current = $("#pw-current").value;
+  const next = $("#pw-new").value;
+  const confirmation = $("#pw-confirm").value;
+  const fail = (text) => showMessage(text, "error", "#pw-msg");
+
+  if (!current || !next || !confirmation) return fail("Completá los tres campos.");
+
+  const users = getUsers();
+  const user = users[localStorage.getItem(SESSION_KEY)];
+  if (!(await matchesSecret(user.passHash, current))) return fail("La contraseña actual es incorrecta.");
+  if (next.length < 6) return fail("La nueva contraseña debe tener al menos 6 caracteres.");
+  if (next !== confirmation) return fail("La confirmación no coincide con la nueva contraseña.");
+  if (next === current) return fail("La nueva contraseña debe ser distinta a la actual.");
+
+  user.passHash = await hashPassword(next);
+  saveUsers(users);
+  event.target.reset();
+  showMessage("¡Contraseña actualizada con éxito!", "ok", "#pw-msg");
+});
+
+/* --- Registro de actividad: últimos 3 inicios de sesión --- */
+function renderLoginLog(user) {
+  const list = $("#login-log");
+  list.innerHTML = "";
+  user.loginLog.forEach((date, index) => {
+    const item = el("li");
+    item.append(el("span", "", date));
+    if (index === 0) item.append(el("span", "badge", "Sesión actual"));
+    list.append(item);
+  });
+}
+
+/* ---------- Pestañas Ingresar / Crear cuenta ---------- */
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const isLogin = tab.dataset.tab === "login";
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
+    $("#login-form").hidden = !isLogin;
+    $("#register-form").hidden = isLogin;
+    showMessage("");
+  });
+});
+
+/* ---------- Registro ---------- */
+$("#register-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const name = $("#reg-name").value.trim();
+  const email = $("#reg-email").value.trim().toLowerCase();
+  const password = $("#reg-pass").value;
+  const question = $("#reg-question").value;
+  const answer = $("#reg-answer").value;
+
+  if (!name || !email || !password) return showMessage("Completá todos los campos.");
+  if (!question) return showMessage("Elegí una pregunta de seguridad.");
+  if (normalizeAnswer(answer).length < 2) return showMessage("La respuesta secreta debe tener al menos 2 caracteres.");
+  if (!/^\S+@\S+\.\S+$/.test(email)) return showMessage("Ingresá un correo válido.");
+  if (password.length < 6) return showMessage("La contraseña debe tener al menos 6 caracteres.");
+
+  const users = getUsers();
+  if (users[email]) return showMessage("Ya existe una cuenta con ese correo.");
+
+  users[email] = {
+    name,
+    email,
+    passHash: await hashPassword(password),
+    secQuestion: question,
+    secAnswerHash: await hashPassword(normalizeAnswer(answer)), // la respuesta también se guarda con hash
+    loginLog: [],
+    balance: 0,
+    transactions: [],
+  };
+  saveUsers(users);
+
+  event.target.reset();
+  document.querySelector('[data-tab="login"]').click();
+  showMessage("Cuenta creada. Ya podés ingresar.", "ok");
+});
+
+/* ---------- Login ---------- */
+$("#login-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const email = $("#login-email").value.trim().toLowerCase();
+  const password = $("#login-pass").value;
+
+  const user = getUsers()[email];
+  if (!user || !(await matchesSecret(user.passHash, password))) {
+    if (Object.keys(getUsers()).length === 0) {
+      return showMessage("No hay cuentas guardadas en este navegador. Las cuentas se guardan en cada dispositivo y no se comparten: creá una en \"Crear cuenta\".");
+    }
+    return showMessage("Correo o contraseña incorrectos. Tocá \"Ver\" para revisar lo que escribiste.");
+  }
+
+  const users = getUsers();
+  const account = ensureUserData(users[email]);
+  // Si la cuenta estaba guardada en texto plano, la pasamos a hash
+  if (account.passHash === password) account.passHash = await hashPassword(password);
+  account.loginLog = [new Date().toLocaleString("es-AR"), ...account.loginLog].slice(0, 3);
+  saveUsers(users);
+
+  localStorage.setItem(SESSION_KEY, email);
+  event.target.reset();
+  showMessage("");
+  showApp(account);
+});
+
+/* ---------- Cerrar sesión ---------- */
+$("#logout-btn").addEventListener("click", () => {
+  localStorage.removeItem(SESSION_KEY);
+  showAuth();
+});
+
+/* ---------- Al cargar la página: ¿hay sesión activa? ---------- */
+
+/* ---------- Reportes por fechas ---------- */
+const pad2 = (n) => String(n).padStart(2, "0");
+const ymdLocal = (iso) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+const addDays = (ymd, days) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const date = new Date(y, m - 1, d + days);
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+};
+
+let reportRange = null; // { from, to } del último reporte mostrado
+
+function currentUser() {
+  const user = getUsers()[localStorage.getItem(SESSION_KEY)];
+  return user ? ensureUserData(user) : null;
+}
+
+function buildReport(user, from, to) {
+  const movs = user.transactions.filter((tx) => {
+    const day = ymdLocal(tx.timestamp);
+    return day >= from && day <= to;
+  });
+  const sum = (list) => Math.round(list.reduce((total, tx) => total + tx.amount, 0) * 100) / 100;
+  const income = sum(movs.filter((tx) => tx.amount > 0 && ["Ingresos", "Rendimientos"].includes(tx.category)));
+  const spent = Math.abs(sum(movs.filter((tx) => tx.amount < 0 && CHART_CATEGORIES.includes(tx.category))));
+  const toGoals = Math.abs(sum(movs.filter((tx) => tx.amount < 0 && tx.category === "Metas")));
+  const fromGoals = sum(movs.filter((tx) => tx.amount > 0 && tx.category === "Metas"));
+  const byCategory = Object.entries(totalsByCategory(movs)).sort((a, b) => b[1] - a[1]);
+  return { movs, income, spent, toGoals, fromGoals, net: sum(movs), byCategory };
+}
+
+// Si está activado el modo incógnito, en pantalla los montos se ocultan
+const reportMoney = (n) => (hideBalance ? "***" : formatMoney(n));
+
+function renderReport(user, from, to) {
+  const box = $("#report-result");
+  const r = buildReport(user, from, to);
+  const saved = user.goals.reduce((total, g) => total + (g.used ? 0 : g.saved), 0);
+  box.innerHTML = "";
+  box.hidden = false;
+
+  box.append(el("h2", "", `Reporte del ${formatDay(from)} al ${formatDay(to)}`));
+  box.append(el("p", "report-hint", `Generado el ${formatDate(new Date().toISOString())} para ${user.name}.`));
+  if (hideBalance) box.append(el("p", "report-hint", "Modo incógnito activado: los montos están ocultos en pantalla."));
+
+  const stats = el("div", "report-stats");
+  [
+    ["Ingresos", reportMoney(r.income), "in"],
+    ["Gastos", reportMoney(r.spent), "out"],
+    ["Variación del saldo", reportMoney(r.net), r.net >= 0 ? "in" : "out"],
+    ["Movimientos", String(r.movs.length), ""],
+  ].forEach(([label, value, kind]) => {
+    const tile = el("div", `stat ${kind}`);
+    tile.append(el("span", "", label), el("strong", "", value));
+    stats.append(tile);
+  });
+  box.append(stats);
+
+  box.append(el("p", "report-line", `Saldo actual: ${reportMoney(user.balance)} · Ahorrado en metas: ${reportMoney(saved)}`));
+  if (r.toGoals || r.fromGoals) {
+    box.append(el("p", "report-line", `En este período aportaste ${reportMoney(r.toGoals)} a metas y retiraste ${reportMoney(r.fromGoals)}.`));
+  }
+
+  if (r.movs.length === 0) {
+    box.append(el("p", "empty", "No hay movimientos en este período."));
+  } else {
+    if (r.byCategory.length) {
+      box.append(el("h3", "", "Gastos por categoría"));
+      const list = el("ul", "report-cats");
+      r.byCategory.forEach(([category, total]) => {
+        const percent = r.spent ? Math.round((total / r.spent) * 100) : 0;
+        const row = el("li", "report-cat");
+        const head = el("div", "report-cat-head");
+        head.append(el("span", "", category), el("strong", "", `${reportMoney(total)} · ${percent}%`));
+        const bar = el("div", "bar");
+        const fill = el("div", "bar-fill");
+        fill.style.width = `${percent}%`;
+        fill.style.background = chartColor(category);
+        bar.append(fill);
+        row.append(head, bar);
+        list.append(row);
+      });
+      box.append(list);
+    }
+
+    box.append(el("h3", "", "Movimientos del período"));
+    const txs = el("ul", "tx-list");
+    r.movs.forEach((tx) => {
+      const li = el("li");
+      const info = el("div");
+      info.append(el("strong", "", tx.description), el("div", "tx-date", `${tx.category} - ${formatDate(tx.timestamp)}`));
+      li.append(info, el("span", `tx-amount ${tx.amount >= 0 ? "in" : "out"}`, `${tx.amount >= 0 ? "" : "-"}${reportMoney(Math.abs(tx.amount))}`));
+      txs.append(li);
+    });
+    box.append(txs);
+  }
+
+  const actions = el("div", "goal-actions report-actions");
+  const csv = el("button", "btn", "Descargar CSV");
+  csv.type = "button";
+  csv.addEventListener("click", () => downloadReportCsv(user, from, to));
+  const print = el("button", "btn-ghost", "Imprimir / guardar PDF");
+  print.type = "button";
+  print.addEventListener("click", () => window.print());
+  actions.append(csv, print);
+  box.append(actions);
+}
+
+function downloadReportCsv(user, from, to) {
+  const r = buildReport(user, from, to);
+  const cell = (value) => `"${String(value).replace(/"/g, '""')}"`;
+  const rows = [["Fecha", "Descripción", "Categoría", "Monto"]];
+  r.movs.slice().reverse().forEach((tx) => {
+    rows.push([formatDate(tx.timestamp), tx.description, tx.category, String(tx.amount).replace(".", ",")]);
+  });
+  rows.push([]);
+  rows.push(["Ingresos", "", "", String(r.income).replace(".", ",")]);
+  rows.push(["Gastos", "", "", String(r.spent).replace(".", ",")]);
+  rows.push(["Variación del saldo", "", "", String(r.net).replace(".", ",")]);
+  // Punto y coma y BOM para que Excel en español lo abra bien
+  const text = "\ufeff" + rows.map((row) => row.map(cell).join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `reporte_${from}_a_${to}.csv`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function showReport(from, to) {
+  if (!from || !to) return showMessage("Elegí las dos fechas: desde y hasta.", "error", "#report-msg");
+  if (from > to) return showMessage("La fecha «Desde» no puede ser posterior a «Hasta».", "error", "#report-msg");
+  const user = currentUser();
+  if (!user) return;
+  reportRange = { from, to };
+  $("#report-from").value = from;
+  $("#report-to").value = to;
+  showMessage("", "ok", "#report-msg");
+  renderReport(user, from, to);
+}
+
+// Si cambian los datos mientras hay un reporte abierto, se actualiza solo
+function refreshReport(user) {
+  if (reportRange && !$("#report-result").hidden) renderReport(user, reportRange.from, reportRange.to);
+}
+
+$("#report-from").max = $("#report-to").max = todayStr();
+$("#report-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  showReport($("#report-from").value, $("#report-to").value);
+});
+document.querySelectorAll("[data-quick]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const today = todayStr();
+    const quick = button.dataset.quick;
+    let from = today;
+    if (quick === "week") from = addDays(today, -6);
+    if (quick === "month") from = `${today.slice(0, 7)}-01`;
+    if (quick === "all") {
+      const user = currentUser();
+      const days = user && user.transactions.length ? user.transactions.map((tx) => ymdLocal(tx.timestamp)).sort() : [today];
+      from = days[0];
+    }
+    document.querySelectorAll("[data-quick]").forEach((b) => b.classList.toggle("active", b === button));
+    showReport(from, today);
+  });
+});
+$("#report-from").addEventListener("input", () => document.querySelectorAll("[data-quick]").forEach((b) => b.classList.remove("active")));
+$("#report-to").addEventListener("input", () => document.querySelectorAll("[data-quick]").forEach((b) => b.classList.remove("active")));
+
+/* ---------- Ver / ocultar contraseña y teclado del celular ---------- */
+document.querySelectorAll('input[type="password"]').forEach((input) => {
+  const wrap = document.createElement("span");
+  wrap.className = "pw-wrap";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "pw-toggle";
+  btn.textContent = "Ver";
+  btn.setAttribute("aria-label", "Mostrar contraseña");
+  btn.addEventListener("click", () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.textContent = show ? "Ocultar" : "Ver";
+    btn.setAttribute("aria-label", show ? "Ocultar contraseña" : "Mostrar contraseña");
+  });
+  wrap.appendChild(btn);
+  // Al limpiar el formulario, la contraseña vuelve a ocultarse
+  input.form && input.form.addEventListener("reset", () => {
+    input.type = "password";
+    btn.textContent = "Ver";
+    btn.setAttribute("aria-label", "Mostrar contraseña");
+  });
+});
+
+// Evita que el teclado ponga mayúsculas, corrija o agregue espacios sin que lo notes
+document.querySelectorAll('input[type="email"], input[type="password"], #reg-answer, #recover-answer').forEach((el) => {
+  el.setAttribute("autocapitalize", "none");
+  el.setAttribute("autocorrect", "off");
+  el.setAttribute("spellcheck", "false");
+});
+
+const activeUser = getUsers()[localStorage.getItem(SESSION_KEY)];
+activeUser ? showApp(activeUser) : showAuth();
+</script>
 </body>
 </html>
