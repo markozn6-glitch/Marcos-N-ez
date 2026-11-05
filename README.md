@@ -56,6 +56,7 @@ No requiere instalación. Hace falta conexión a internet para cargar los gráfi
 - Nuñez Marcos: Frontend
 - Villalba Luciano: UX/UI
 - Gomez Matias: DevOps / Infraestructura
+- Solan Caren: Infraestructura
 
 Docente: Prof. Martín Frette
 
