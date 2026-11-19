@@ -180,6 +180,11 @@ body {
   padding: 11px 16px; border-radius: 12px;
 }
 .btn-light:hover { background: rgba(255, 255, 255, .26); }
+.invest-form { align-items: center; }
+.invest-label { color: #fff; font-weight: 700; }
+.invest-form select { flex: 1 1 220px; font: inherit; padding: 11px 14px; border: 0; border-radius: 12px; background: #fff; color: #111; }
+.invest-form input { flex: 1 1 160px; }
+.invest-note { color: #fff; opacity: .85; font-size: .8rem; margin-top: 10px; }
 .balance .msg { color: #fff; margin-top: 12px; }
 .balance .msg.error { color: #ffd0d8; }
 .balance .msg.ok { color: #b9ffee; }
@@ -453,7 +458,7 @@ button, .nav-tab, .range-tab, .quick-tab, .tab, .chip, .swatch, .contact { touch
 @media (max-width: 480px) {
   .balance { padding: 22px 18px; }
   .balance-actions { flex-direction: column; }
-  .balance-actions input, .balance-actions .btn-light { flex: 1 1 auto; width: 100%; }
+  .balance-actions input, .balance-actions select, .balance-actions .btn-light { flex: 1 1 auto; width: 100%; }
   .goal-add .btn, .goal-add .btn-ghost { flex: 1 1 calc(50% - 5px); }
   .contact-list { grid-template-columns: 1fr; }
   .auth-brand { padding: 32px 20px; }
@@ -621,8 +626,16 @@ button, .nav-tab, .range-tab, .quick-tab, .tab, .chip, .swatch, .contact { touch
         <form id="topup-form" class="balance-actions" novalidate>
           <input id="topup-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Monto a cargar" aria-label="Monto a cargar">
           <button type="submit" class="btn-light">Cargar saldo</button>
-          <button type="button" id="yield-btn" class="btn-light">Simular rendimiento (4%)</button>
+          <button type="button" id="invest-btn" class="btn-light" aria-expanded="false" aria-controls="invest-form">Invertir en:</button>
         </form>
+        <form id="invest-form" class="balance-actions invest-form" novalidate hidden>
+          <label for="invest-asset" class="invest-label">Invertir en:</label>
+          <select id="invest-asset" aria-label="Elegí en qué invertir"></select>
+          <input id="invest-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Monto a invertir" aria-label="Monto a invertir">
+          <button type="submit" class="btn-light">Confirmar inversión</button>
+          <button type="button" id="invest-cancel" class="btn-light">Cancelar</button>
+        </form>
+        <p id="invest-note" class="invest-note" hidden>Simulación ficticia con fines educativos: no es dinero real ni una recomendación de inversión.</p>
         <p id="balance-msg" class="msg" role="alert"></p>
       </section>
 
@@ -1184,7 +1197,13 @@ $("#expense-form").addEventListener("submit", (event) => {
 });
 
 /* ---------- Fase 3: metas, rendimientos, contactos y perfil ---------- */
-const YIELD_RATE = 0.04; // interés ficticio del 4%
+// Opciones de inversión simuladas (rendimientos ficticios, solo para la demo)
+const INVESTMENT_OPTIONS = [
+  { id: "dolar", label: "Comprar dólares", rate: 0.02 },
+  { id: "cocacola", label: "Comprar acciones de Coca-Cola", rate: 0.03 },
+  { id: "facebook", label: "Comprar acciones de Facebook (Meta)", rate: 0.05 },
+  { id: "ficticia", label: "Comprar acciones de SegurityByte S.A. (empresa ficticia)", rate: 0.04 },
+];
 let selectedContact = null;
 
 // Crea un elemento con clase y texto (textContent evita inyectar HTML del usuario)
@@ -1548,14 +1567,43 @@ $("#topup-form").addEventListener("submit", (event) => {
   showMessage("Saldo cargado.", "ok", "#balance-msg");
 });
 
-$("#yield-btn").addEventListener("click", () => {
+/* --- Invertir (simulación) --- */
+const investForm = $("#invest-form");
+const investBtn = $("#invest-btn");
+INVESTMENT_OPTIONS.forEach((opt) => {
+  const option = el("option", "", `${opt.label} (rendimiento simulado ${Math.round(opt.rate * 100)}%)`);
+  option.value = opt.id;
+  $("#invest-asset").append(option);
+});
+
+function toggleInvestForm(open) {
+  investForm.hidden = !open;
+  $("#invest-note").hidden = !open;
+  investBtn.setAttribute("aria-expanded", String(open));
+  if (open) $("#invest-amount").focus();
+}
+
+investBtn.addEventListener("click", () => toggleInvestForm(investForm.hidden));
+$("#invest-cancel").addEventListener("click", () => { investForm.reset(); toggleInvestForm(false); });
+
+investForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const option = INVESTMENT_OPTIONS.find((o) => o.id === $("#invest-asset").value);
+  const amount = parseFloat($("#invest-amount").value);
+  if (!option) return showMessage("Elegí en qué querés invertir.", "error", "#balance-msg");
+  if (!(amount > 0)) return showMessage("Ingresá un monto a invertir mayor a 0.", "error", "#balance-msg");
+
   let gain = 0;
   const done = updateUser((user) => {
-    gain = Math.round(user.balance * YIELD_RATE * 100) / 100;
-    if (!(gain > 0)) return "No tenés saldo libre para generar rendimientos.";
-    addTransaction(user, `Rendimientos (${YIELD_RATE * 100}%)`, "Rendimientos", gain);
+    if (amount > user.balance) return "Saldo insuficiente para invertir ese monto.";
+    gain = Math.round(amount * option.rate * 100) / 100;
+    addTransaction(user, `Inversión simulada: ${option.label} (${formatMoney(amount)})`, "Rendimientos", gain);
   }, "#balance-msg");
-  if (done) showMessage(`Pasó el tiempo: ganaste ${formatMoney(gain)} de rendimiento.`, "ok", "#balance-msg");
+  if (done) {
+    investForm.reset();
+    toggleInvestForm(false);
+    showMessage(`Invertiste ${formatMoney(amount)} en: ${option.label}. Pasó el tiempo y ganaste ${formatMoney(gain)} (simulado).`, "ok", "#balance-msg");
+  }
 });
 
 /* --- Contactos y transferencias --- */
@@ -1754,8 +1802,8 @@ const BOT_INTENTS = [
   [/rendimiento|interes|invert/, (u) => {
     const gains = u.transactions.filter((t) => t.category === "Rendimientos");
     const total = gains.reduce((sum, t) => sum + t.amount, 0);
-    return `El rendimiento ficticio es del ${YIELD_RATE * 100}% sobre tu saldo libre. ` +
-      (gains.length ? `Ya acumulaste ${formatMoney(total)}.` : "Probalo con el botón «Simular rendimiento».");
+    return "Podés simular inversiones con el botón «Invertir en:» (dólares, acciones de Coca-Cola, Facebook o una empresa ficticia). Los rendimientos son ficticios. " +
+      (gains.length ? `Ya acumulaste ${formatMoney(total)}.` : "Todavía no hiciste ninguna inversión simulada.");
   }],
 
   [/ayuda|que podes|que sabes|opciones/, () =>
